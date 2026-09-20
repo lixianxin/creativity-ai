@@ -1,0 +1,42 @@
+[
+  {
+    "case": 1,
+    "seconds": 111.9,
+    "prompt_tokens": 1617,
+    "completion_tokens": 13202,
+    "platform": "deepseek",
+    "model": "deepseek-v4-flash"
+  },
+  {
+    "case": 2,
+    "seconds": 37.5,
+    "prompt_tokens": 1609,
+    "completion_tokens": 4217,
+    "platform": "deepseek",
+    "model": "deepseek-v4-flash"
+  },
+  {
+    "case": 3,
+    "seconds": 146.2,
+    "prompt_tokens": 1650,
+    "completion_tokens": 15707,
+    "platform": "deepseek",
+    "model": "deepseek-v4-flash"
+  },
+  {
+    "case": 4,
+    "seconds": 94.2,
+    "prompt_tokens": 1623,
+    "completion_tokens": 10950,
+    "platform": "deepseek",
+    "model": "deepseek-v4-flash"
+  },
+  {
+    "case": 5,
+    "seconds": 12.3,
+    "prompt_tokens": 1601,
+    "completion_tokens": 1418,
+    "platform": "deepseek",
+    "model": "deepseek-v4-flash"
+  }
+]

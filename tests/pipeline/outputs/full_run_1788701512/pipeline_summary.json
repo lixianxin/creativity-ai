@@ -1,0 +1,86 @@
+[
+  {
+    "seq": 1,
+    "agent": "user_insight",
+    "label": "用户洞察官",
+    "status": "ok",
+    "tokens": 1715
+  },
+  {
+    "seq": 2,
+    "agent": "market_analysis",
+    "label": "市场分析官",
+    "status": "ok",
+    "tokens": 13369
+  },
+  {
+    "seq": 3,
+    "agent": "competitor_analysis",
+    "label": "竞品分析官",
+    "status": "ok",
+    "tokens": 9687
+  },
+  {
+    "seq": 4,
+    "agent": "product_design",
+    "label": "产品设计官",
+    "status": "ok",
+    "tokens": 13897
+  },
+  {
+    "seq": 5,
+    "agent": "business_model",
+    "label": "商业模式官",
+    "status": "ok",
+    "tokens": 8988
+  },
+  {
+    "seq": 6,
+    "agent": "finance",
+    "label": "财务分析官",
+    "status": "ok",
+    "tokens": 5082
+  },
+  {
+    "seq": 7,
+    "agent": "growth_ops",
+    "label": "增长运营官",
+    "status": "ok",
+    "tokens": 13578
+  },
+  {
+    "seq": 8,
+    "agent": "risk_review",
+    "label": "风险审查官",
+    "status": "ok",
+    "tokens": 4175
+  },
+  {
+    "seq": 9,
+    "agent": "red_team",
+    "label": "红队质疑官",
+    "status": "ok",
+    "tokens": 1670
+  },
+  {
+    "seq": 10,
+    "agent": "commander",
+    "label": "创业总指挥",
+    "status": "ok",
+    "tokens": 1695
+  },
+  {
+    "seq": 11,
+    "agent": "project_review",
+    "label": "项目评审官",
+    "status": "ok",
+    "tokens": 15388
+  },
+  {
+    "seq": 12,
+    "agent": "pitch_defense",
+    "label": "路演答辩官",
+    "status": "ok",
+    "tokens": 14687
+  }
+]

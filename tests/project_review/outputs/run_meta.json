@@ -1,0 +1,10 @@
+[
+  {
+    "case": 1,
+    "seconds": 11.3,
+    "prompt_tokens": 2311,
+    "completion_tokens": 1331,
+    "platform": "deepseek",
+    "model": "deepseek-v4-flash"
+  }
+]
