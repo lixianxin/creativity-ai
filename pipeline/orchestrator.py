@@ -413,9 +413,11 @@ class CommitteePipeline:
                         if on_progress:
                             on_progress(int(spec.seq) - 1, "running", None)
                         ctx_dict = self._context_for(spec, ctx)
-                        print(f"\n[第{spec.seq}棒] {spec.label} 分析中"
-                              f"{'（输入降级：缺 ' + '、'.join(sorted(degraded_inputs)) + '）'
-                               if degraded_inputs else ''}...")
+                        degrade_hint = (
+                            f"（输入降级：缺 {'、'.join(sorted(degraded_inputs))}）"
+                            if degraded_inputs else ""
+                        )
+                        print(f"\n[第{spec.seq}棒] {spec.label} 分析中{degrade_hint}...")
                         futures[pool.submit(
                             self._execute_agent, spec, project_input, ctx_dict,
                             run_id, degraded_inputs
