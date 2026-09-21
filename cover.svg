@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" width="900" height="900">
+  <defs>
+    <radialGradient id="coreGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#4f8cff"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </radialGradient>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e0e7ff"/>
+      <stop offset="100%" stop-color="#c7d2fe"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 背景 -->
+  <rect width="900" height="900" fill="#0f172a"/>
+
+  <!-- 外装饰环 -->
+  <circle cx="450" cy="450" r="380" fill="none" stroke="#1e293b" stroke-width="2"/>
+  <circle cx="450" cy="450" r="340" fill="none" stroke="#334155" stroke-width="1" stroke-dasharray="4 6"/>
+
+  <!-- 连接线（核心到节点） -->
+  <g stroke="#334155" stroke-width="1">
+    <line x1="450" y1="450" x2="450" y2="130"/>
+    <line x1="450" y1="450" x2="610" y2="176"/>
+    <line x1="450" y1="450" x2="730" y2="290"/>
+    <line x1="450" y1="450" x2="770" y2="450"/>
+    <line x1="450" y1="450" x2="730" y2="610"/>
+    <line x1="450" y1="450" x2="610" y2="724"/>
+    <line x1="450" y1="450" x2="450" y2="770"/>
+    <line x1="450" y1="450" x2="290" y2="724"/>
+    <line x1="450" y1="450" x2="170" y2="610"/>
+    <line x1="450" y1="450" x2="130" y2="450"/>
+    <line x1="450" y1="450" x2="170" y2="290"/>
+    <line x1="450" y1="450" x2="290" y2="176"/>
+  </g>
+
+  <!-- 12 个委员节点 -->
+  <!-- 专家委员会 8 员（蓝色） -->
+  <g font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="15" fill="#e2e8f0" text-anchor="middle">
+    <!-- 用户洞察 (top) -->
+    <circle cx="450" cy="130" r="34" fill="#2563eb" stroke="#60a5fa" stroke-width="2"/>
+    <text x="450" y="125" font-size="13" font-weight="bold">用户</text>
+    <text x="450" y="142" font-size="13" font-weight="bold">洞察</text>
+
+    <!-- 市场分析 -->
+    <circle cx="610" cy="176" r="34" fill="#2563eb" stroke="#60a5fa" stroke-width="2"/>
+    <text x="610" y="171" font-size="13" font-weight="bold">市场</text>
+    <text x="610" y="188" font-size="13" font-weight="bold">分析</text>
+
+    <!-- 竞品分析 -->
+    <circle cx="730" cy="290" r="34" fill="#2563eb" stroke="#60a5fa" stroke-width="2"/>
+    <text x="730" y="285" font-size="13" font-weight="bold">竞品</text>
+    <text x="730" y="302" font-size="13" font-weight="bold">分析</text>
+
+    <!-- 产品设计 -->
+    <circle cx="770" cy="450" r="34" fill="#2563eb" stroke="#60a5fa" stroke-width="2"/>
+    <text x="770" y="445" font-size="13" font-weight="bold">产品</text>
+    <text x="770" y="462" font-size="13" font-weight="bold">设计</text>
+
+    <!-- 商业模式 -->
+    <circle cx="730" cy="610" r="34" fill="#2563eb" stroke="#60a5fa" stroke-width="2"/>
+    <text x="730" y="605" font-size="13" font-weight="bold">商业</text>
+    <text x="730" y="622" font-size="13" font-weight="bold">模式</text>
+
+    <!-- 财务分析 -->
+    <circle cx="610" cy="724" r="34" fill="#2563eb" stroke="#60a5fa" stroke-width="2"/>
+    <text x="610" y="719" font-size="13" font-weight="bold">财务</text>
+    <text x="610" y="736" font-size="13" font-weight="bold">分析</text>
+
+    <!-- 增长运营 -->
+    <circle cx="450" cy="770" r="34" fill="#2563eb" stroke="#60a5fa" stroke-width="2"/>
+    <text x="450" y="765" font-size="13" font-weight="bold">增长</text>
+    <text x="450" y="782" font-size="13" font-weight="bold">运营</text>
+
+    <!-- 风险审查 -->
+    <circle cx="290" cy="724" r="34" fill="#2563eb" stroke="#60a5fa" stroke-width="2"/>
+    <text x="290" y="719" font-size="13" font-weight="bold">风险</text>
+    <text x="290" y="736" font-size="13" font-weight="bold">审查</text>
+
+    <!-- 对抗委员会：红队质疑（红色） -->
+    <circle cx="170" cy="610" r="34" fill="#dc2626" stroke="#f87171" stroke-width="2.5"/>
+    <text x="170" y="605" font-size="13" font-weight="bold">红队</text>
+    <text x="170" y="622" font-size="13" font-weight="bold">质疑</text>
+
+    <!-- 决策委员会 3 员（绿色） -->
+    <!-- 创业总指挥 -->
+    <circle cx="130" cy="450" r="34" fill="#059669" stroke="#34d399" stroke-width="2.5"/>
+    <text x="130" y="445" font-size="13" font-weight="bold">总指</text>
+    <text x="130" y="462" font-size="13" font-weight="bold">挥</text>
+
+    <!-- 项目评审 -->
+    <circle cx="170" cy="290" r="34" fill="#059669" stroke="#34d399" stroke-width="2.5"/>
+    <text x="170" y="285" font-size="13" font-weight="bold">项目</text>
+    <text x="170" y="302" font-size="13" font-weight="bold">评审</text>
+
+    <!-- 路演答辩 -->
+    <circle cx="290" cy="176" r="34" fill="#059669" stroke="#34d399" stroke-width="2.5"/>
+    <text x="290" y="171" font-size="13" font-weight="bold">路演</text>
+    <text x="290" y="188" font-size="13" font-weight="bold">答辩</text>
+  </g>
+
+  <!-- 中央核心 -->
+  <circle cx="450" cy="450" r="95" fill="url(#coreGrad)" stroke="#93c5fd" stroke-width="3"/>
+  <circle cx="450" cy="450" r="80" fill="none" stroke="#bfdbfe" stroke-width="1" opacity="0.5"/>
+  <text x="450" y="435" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="38" font-weight="bold" fill="#ffffff" text-anchor="middle">创想∞</text>
+  <text x="450" y="470" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="18" fill="#dbeafe" text-anchor="middle">AI创业委员会</text>
+
+  <!-- 图例 -->
+  <g font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="14" fill="#94a3b8">
+    <rect x="300" y="845" width="14" height="14" fill="#2563eb"/>
+    <text x="320" y="857">专家委员会</text>
+    <rect x="430" y="845" width="14" height="14" fill="#dc2626"/>
+    <text x="450" y="857">对抗委员会</text>
+    <rect x="560" y="845" width="14" height="14" fill="#059669"/>
+    <text x="580" y="857">决策委员会</text>
+  </g>
+</svg>
