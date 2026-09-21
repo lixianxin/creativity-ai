@@ -19,6 +19,7 @@
 BACKGROUND = "#F7F8FA"        # 页面背景（极浅暖灰，让白卡浮出来）
 SURFACE = "#FFFFFF"           # 主卡片
 SURFACE_SOFT = "#FCFCFB"      # 子卡片 / 内嵌区块
+SIDEBAR_BG = "#F4F5F8"        # Sidebar 底色（极浅冷灰，与主内容区暖白形成层次）
 
 # ── 边框 ──
 BORDER = "#E9E7E3"            # 全站默认 1px 边框
@@ -158,6 +159,7 @@ FONT_FAMILY = (
 
 CSS_VARS = {
     "cx-bg": BACKGROUND,
+    "cx-sidebar-bg": SIDEBAR_BG,
     "cx-surface": SURFACE,
     "cx-surface-soft": SURFACE_SOFT,
     "cx-border": BORDER,
@@ -536,14 +538,24 @@ button[kind="secondary"]:hover, button[kind="secondaryFormSubmit"]:hover {
 
 /* ── Streamlit 自身的少量覆盖（全部单层，不做深层后代覆盖） ──
    1) 主内容区留白与最大宽度，让信息不贴边；
-   2) 侧边栏宽度固定 232px（折叠时由 Streamlit 自行处理）；
-   3) 顶部栏透明化，保留折叠按钮与菜单可用。
+   2) Sidebar 极浅灰底 + 右侧 1px 分隔线，与暖白主内容区分层；
+      宽度只在【展开态】固定 232px——折叠态（aria-expanded=false）
+      本节规则一条都不命中，完全交给 Streamlit 原生收起/展开动画；
+   3) 顶部栏透明化；只隐藏右上角两个原生 chrome 按钮
+      （stMainMenu 主菜单、stAppDeployButton 部署入口）。
+      绝不可以隐藏 stToolbar：折叠后的原生「展开 Sidebar」按钮
+      （stExpandSidebarButton）就在 stToolbar 左侧内部，隐藏整个
+      toolbar 会导致 Sidebar 收起后无法再打开（1.63 DOM 实测）。
    注意：这些样式只影响外观，不阻塞任何 Python 执行。 */
 .block-container { padding-top: 3.4rem !important; padding-bottom: 3rem !important; max-width: 1180px; }
-.stSidebar { min-width: 232px !important; max-width: 232px !important; }
+section.stSidebar {
+  background-color: var(--cx-sidebar-bg);
+  border-right: 1px solid var(--cx-border);
+}
+.stSidebar[aria-expanded="true"] { min-width: 232px !important; max-width: 232px !important; }
 .stSidebar .block-container, .stSidebar [data-testid="stSidebarUserContent"] { padding-top: 1.4rem; }
 [data-testid="stHeader"] { background: transparent; }
-[data-testid="stToolbar"] { display: none; }
+[data-testid="stMainMenu"], [data-testid="stAppDeployButton"] { display: none; }
 [data-testid="stVerticalBlockBorderWrapper"] {
   border-radius: var(--cx-radius-md) !important;
   border-color: var(--cx-border) !important;
