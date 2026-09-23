@@ -5,6 +5,8 @@
 
 面向大学生创新创业教育的 12 智能体评审系统。学生输入创业想法，12 个 AI 专家委员模拟真实创业委员会，从用户洞察到路演答辩做全链路审查，输出结构化诊断结果。
 
+**在线体验**：<https://creativity-ai-twuhpmhq8mj9wra4ydvdml.streamlit.app/>（邮箱验证码注册后即可使用，历史审查记录按用户隔离）。
+
 ## 委员会架构
 
 ### 专家委员会（8 员）—— 各维度专业分析
@@ -52,34 +54,58 @@
 ## 目录结构
 
 ```
+frontend/           # Streamlit Web 应用（入口 app.py）
+auth/               # Supabase Auth 认证（邮箱验证码注册/登录）
+core/               # DAG 执行图、RunStore、ResultValidator、LLM 客户端
+pipeline/           # 12 棒编排器 CommitteePipeline
+schemas/            # Agent 结构化结果模型
 agents/
 ├── prompts/              # 12 个系统 Prompt（V1.0 冻结）
 ├── knowledge/            # 12 Agent 知识库（每 Agent 6 md，共 72 篇）
 ├── qa/                   # 12 Agent 核心 QA（每 Agent 10 条，共 120 条）
 └── context/
     └── project_context_template.md  # 统一项目上下文模板
-
+reports/            # 前端首页演示报告（12 棒 + final_report.md）
 tests/
-├── <agent>/              # 12 套独立测试脚本 + 5 案例真实输出
-└── pipeline/
-    ├── run_pipeline.py          # 3 Agent 最小闭环联调
-    └── run_full_pipeline.py     # 12 Agent 全链路联调
+├── <agent>/              # 12 套 5 案例独立验收脚本与冻结输出
+├── pipeline/             # 3 Agent / 12 Agent 联调脚本
+└── system/               # 离线工程验收（DAG / Critic-Repair / Validator / 认证冒烟）
 ```
 
 ## 运行方式
 
-### 单 Agent 测试
+### Web 应用
+
+```bash
+pip install -r requirements.txt
+# 复制 .streamlit/secrets.example.toml 为 .streamlit/secrets.toml 并填入密钥
+python -m streamlit run frontend/app.py
+```
+
+需要在 `.streamlit/secrets.toml` 配置：
+
+- `SUPABASE_URL` / `SUPABASE_ANON_KEY`：用户注册登录（Supabase Auth，邮箱验证码注册 + 密码登录，无本地回退）
+- 至少一个 LLM 平台密钥：`DEEPSEEK_*` / `BAILIAN_*` / `ZHIPU_*`（主平台余额不足时自动降级到下一个可用平台）
+
+Streamlit Community Cloud 部署时，在应用 Settings → Secrets 中填入同样内容即可。
+
+### 离线工程验收（不调真实 LLM）
+
+```bash
+python tests/system/test_phase_7_7_dag.py                  # DAG 并行/阻断/恢复（52 项）
+python tests/system/test_phase_7_8_critic_repair.py        # Critic→Repair 闭环（39 项）
+python tests/system/test_phase_7_9_validator_semantics.py  # Validator 语义（36 项）
+python tests/system/test_v2_runtime.py                     # 失败路径/错误分类/断点恢复（80 项）
+python tests/system/smoke_auth.py                          # 注册→验证码→登录 无头冒烟
+```
+
+### 单 Agent / 全链路真实联调（需要 API Key，会产生调用费用）
+
 ```bash
 python tests/redteam/run_redteam_test.py        # 红队 5 案例
 python tests/finance/run_finance_test.py        # 财务 5 案例
-# ... 其余 Agent 同理
+python tests/pipeline/run_full_pipeline.py      # 12 Agent 全链路
 ```
-
-### 12 Agent 全链路联调
-```bash
-python tests/pipeline/run_full_pipeline.py
-```
-输出落盘 `tests/pipeline/outputs/full_run_<时间戳>/`，每棒一个 md。
 
 ### 平台
 默认 DeepSeek `deepseek-v4-flash`，自动降级百炼 `qwen-plus` / 智谱 `glm-5.1`。
