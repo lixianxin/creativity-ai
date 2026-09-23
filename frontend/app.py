@@ -359,7 +359,7 @@ def page_auth():
                 otp = st.text_input(
                     "邮箱验证码",
                     key="signup_otp",
-                    placeholder="请输入邮件中的 6 位验证码",
+                    placeholder="请输入邮件中的验证码",
                 )
                 otp_submit = st.form_submit_button("验证并注册", type="primary", use_container_width=True)
             col_back, _, _ = st.columns([1, 2, 2])
