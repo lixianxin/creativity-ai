@@ -1,0 +1,301 @@
+﻿报告目录：D:\code\creativity-ai\reports\phase_7_9_real_20260919_220036
+============================================================
+AI 创业委员会 12 Agent 执行器（Phase 7-7 DAG Runtime，启动）
+Run ID: run_ecf846e4ff50
+============================================================
+
+[DAG 第0层] 同时启动 8 个 Agent...
+
+[第01棒] 用户洞察官 分析中...
+
+[第02棒] 市场分析官 分析中...
+
+[第03棒] 竞品分析官 分析中...
+
+[第04棒] 产品设计官 分析中...
+
+[第05棒] 商业模式官 分析中...
+
+[第06棒] 财务分析官 分析中...
+
+[第07棒] 增长运营官 分析中...
+
+[第08棒] 风险审查官 分析中...
+[LLM] deepseek 不可用: Error code: 402 - {'error': {'message': 'Insufficient Balance', 'type': 'unknown_error', 'param': None, 'code': 'invalid
+[LLM] deepseek 不可用: Error code: 402 - {'error': {'message': 'Insufficient Balance', 'type': 'unknown_error', 'param': None, 'code': 'invalid
+[LLM] deepseek 不可用: Error code: 402 - {'error': {'message': 'Insufficient Balance', 'type': 'unknown_error', 'param': None, 'code': 'invalid
+[LLM] deepseek 不可用: Error code: 402 - {'error': {'message': 'Insufficient Balance', 'type': 'unknown_error', 'param': None, 'code': 'invalid
+[LLM] deepseek 不可用: Error code: 402 - {'error': {'message': 'Insufficient Balance', 'type': 'unknown_error', 'param': None, 'code': 'invalid
+[LLM] deepseek 不可用: Error code: 402 - {'error': {'message': 'Insufficient Balance', 'type': 'unknown_error', 'param': None, 'code': 'invalid
+[LLM] deepseek 不可用: Error code: 402 - {'error': {'message': 'Insufficient Balance', 'type': 'unknown_error', 'param': None, 'code': 'invalid
+[LLM] deepseek 不可用: Error code: 402 - {'error': {'message': 'Insufficient Balance', 'type': 'unknown_error', 'param': None, 'code': 'invalid
+[LLM] 使用 bailian / qwen-plus
+[LLM] 使用 bailian / qwen-plus
+[LLM] 使用 bailian / qwen-plus
+[LLM] 使用 bailian / qwen-plus
+[LLM] 使用 bailian / qwen-plus
+[LLM] 使用 bailian / qwen-plus
+[LLM] 使用 bailian / qwen-plus
+[LLM] 使用 bailian / qwen-plus
+  [business_model] LLM 调用完成，46.2s，3110字
+  ✅ 商业模式官 (47.6s)
+  [user_insight] LLM 调用完成，46.2s，3054字
+  ✅ 用户洞察官 (47.7s)
+  [competitor_analysis] LLM 调用完成，52.3s，3397字
+  ✅ 竞品分析官 (53.8s)
+  [market_analysis] LLM 调用完成，55.0s，3656字
+  ✅ 市场分析官 (56.5s) ⚠️1警
+  [growth_ops] LLM 调用完成，62.6s，4144字
+  ✅ 增长运营官 (63.9s)
+  [product_design] LLM 调用完成，69.2s，4612字
+  ✅ 产品设计官 (70.7s)
+  [finance] LLM 调用完成，72.3s，4742字
+  ✅ 财务分析官 (73.8s) | 无法可靠计算
+  [risk_review] LLM 调用完成，73.8s，5037字
+  ✅ 风险审查官 (75.2s)
+
+[第09棒] 红队质疑官 分析中...
+  [red_team] LLM 调用完成，43.7s，3065字
+  ✅ 红队质疑官 (43.7s)
+
+[第10棒] 创业总指挥 分析中...
+  [commander] LLM 调用完成，19.3s，1207字
+  ✅ 创业总指挥 (19.3s) | 想法验证
+
+[第11棒] 项目评审官 分析中...
+  [project_review] LLM 调用完成，47.8s，3320字
+  ✅ 项目评审官 (47.8s) | 暂缓进入修订周期
+
+[第12棒] 路演答辩官 分析中...
+  [pitch_defense] LLM 调用完成，75.6s，5185字
+  ✅ 路演答辩官 (75.6s) | **暂不建议路演**
+
+============================================================
+Run 结束 | 成功 12/12（降级 0） | 阻断 0 跳过 0 | 返工 0 | 总耗时 261.7s
+============================================================
+
+============================================================
+=== Phase 7-9 EVIDENCE ===
+{
+  "run_id": "run_ecf846e4ff50",
+  "run_status": "success",
+  "wall_s": 261.7,
+  "report_dir": "D:\\code\\creativity-ai\\reports\\phase_7_9_real_20260919_220036",
+  "stats": {
+    "stages": [
+      {
+        "seq": "05",
+        "key": "business",
+        "label": "商业模式官",
+        "status": "success",
+        "elapsed_s": 47.6,
+        "error": "",
+        "repaired": false,
+        "warnings": 0,
+        "resumed": false
+      },
+      {
+        "seq": "01",
+        "key": "user",
+        "label": "用户洞察官",
+        "status": "success",
+        "elapsed_s": 47.7,
+        "error": "",
+        "repaired": false,
+        "warnings": 0,
+        "resumed": false
+      },
+      {
+        "seq": "03",
+        "key": "competitor",
+        "label": "竞品分析官",
+        "status": "success",
+        "elapsed_s": 53.8,
+        "error": "",
+        "repaired": false,
+        "warnings": 0,
+        "resumed": false
+      },
+      {
+        "seq": "02",
+        "key": "market",
+        "label": "市场分析官",
+        "status": "success",
+        "elapsed_s": 56.5,
+        "error": "",
+        "repaired": false,
+        "warnings": 1,
+        "resumed": false
+      },
+      {
+        "seq": "07",
+        "key": "growth",
+        "label": "增长运营官",
+        "status": "success",
+        "elapsed_s": 63.9,
+        "error": "",
+        "repaired": false,
+        "warnings": 0,
+        "resumed": false
+      },
+      {
+        "seq": "04",
+        "key": "product",
+        "label": "产品设计官",
+        "status": "success",
+        "elapsed_s": 70.7,
+        "error": "",
+        "repaired": false,
+        "warnings": 0,
+        "resumed": false
+      },
+      {
+        "seq": "06",
+        "key": "finance",
+        "label": "财务分析官",
+        "status": "success",
+        "elapsed_s": 73.8,
+        "error": "",
+        "repaired": false,
+        "warnings": 0,
+        "resumed": false
+      },
+      {
+        "seq": "08",
+        "key": "risk",
+        "label": "风险审查官",
+        "status": "success",
+        "elapsed_s": 75.2,
+        "error": "",
+        "repaired": false,
+        "warnings": 0,
+        "resumed": false
+      },
+      {
+        "seq": "09",
+        "key": "red_team",
+        "label": "红队质疑官",
+        "status": "success",
+        "elapsed_s": 43.7,
+        "error": "",
+        "repaired": false,
+        "warnings": 0,
+        "resumed": false
+      },
+      {
+        "seq": "10",
+        "key": "commander",
+        "label": "创业总指挥",
+        "status": "success",
+        "elapsed_s": 19.3,
+        "error": "",
+        "repaired": false,
+        "warnings": 0,
+        "resumed": false
+      },
+      {
+        "seq": "11",
+        "key": "review",
+        "label": "项目评审官",
+        "status": "success",
+        "elapsed_s": 47.8,
+        "error": "",
+        "repaired": false,
+        "warnings": 0,
+        "resumed": false
+      },
+      {
+        "seq": "12",
+        "key": "pitch",
+        "label": "路演答辩官",
+        "status": "success",
+        "elapsed_s": 75.6,
+        "error": "",
+        "repaired": false,
+        "warnings": 0,
+        "resumed": false
+      }
+    ],
+    "total_elapsed": 261.7,
+    "success_count": 12,
+    "fail_count": 0,
+    "degraded_count": 0,
+    "blocked_count": 0,
+    "skipped_count": 0,
+    "repaired_count": 0,
+    "warning_count": 1,
+    "halt_reason": ""
+  },
+  "semantic": {
+    "commander": {
+      "db_repaired": false,
+      "db_retry_count": 0,
+      "db_validation_warnings": [],
+      "revalidated": {
+        "issue_codes": [],
+        "error_codes": [],
+        "warning_codes": [],
+        "signals": {
+          "conclusion": "想法验证"
+        },
+        "bullet_count": 3,
+        "has_growth_section": false,
+        "has_payer_section": false,
+        "chars": 1207
+      }
+    },
+    "red_team": {
+      "db_repaired": false,
+      "db_retry_count": 0,
+      "db_validation_warnings": [],
+      "revalidated": {
+        "issue_codes": [],
+        "error_codes": [],
+        "warning_codes": [],
+        "signals": {
+          "attack_dimensions": [
+            "需求假设",
+            "付费假设",
+            "竞争假设",
+            "增长假设",
+            "壁垒假设"
+          ],
+          "missing_dimensions": [],
+          "fatal_or_high_count": 6
+        },
+        "bullet_count": 10,
+        "has_growth_section": true,
+        "has_payer_section": true,
+        "chars": 3065
+      }
+    }
+  },
+  "repairs_in_run": [],
+  "graph_state": {
+    "success": 12,
+    "failed": [],
+    "blocked_or_skipped": []
+  },
+  "l0_max_parallel": 8,
+  "layer_violations": [],
+  "chain_issues": [],
+  "final_report_exists": true
+}
+=== Phase 7-9 EVIDENCE END ===
+
+═══ Phase 7-9 真实验收 8 项 ═══
+  ✅ 1_真实API
+  ✅ 2_Commander误判消除_首检即过
+  ✅ 3_RedTeam新五维真实生效
+  ✅ 4_旧失败根因不复发
+  ✅ 5_RunStore一致
+  ✅ 6_DAG时序未回退
+  ✅ 7_FinalReport与决策链
+  ✅ 8_Repair机制在线
+
+Run=success｜成功12/12｜耗时=261.7s｜L0并发=8
+commander: bullets=3 repaired=False issues=[]
+red_team : dims=['需求假设', '付费假设', '竞争假设', '增长假设', '壁垒假设'] missing=[] 增长段=有 repaired=False
+返工棒数=0（零返工=误判消除的直接证据；有返工则须证据完整）
+
+判定：✅ Phase 7-9 真实语义验收通过

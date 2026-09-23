@@ -51,10 +51,16 @@ class RunStore:
         with self._connect() as conn:
             # WAL：1-7 专家 Agent 并行落 checkpoint 时避免写锁互相阻塞
             conn.execute("PRAGMA journal_mode=WAL")
+            # 兼容旧库迁移：若 runs 表已存在但缺少 user_id 列则补上
+            cols = {r[1] for r in conn.execute("PRAGMA table_info(runs)").fetchall()}
+            if cols and "user_id" not in cols:
+                conn.execute("ALTER TABLE runs ADD COLUMN user_id TEXT DEFAULT ''")
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_runs_user ON runs(user_id)")
             conn.executescript(
                 """
                 CREATE TABLE IF NOT EXISTS runs (
                     run_id TEXT PRIMARY KEY,
+                    user_id TEXT DEFAULT '',
                     project_id TEXT DEFAULT '',
                     status TEXT NOT NULL,
                     current_stage TEXT DEFAULT '',
@@ -68,6 +74,7 @@ class RunStore:
                     finished_at TIMESTAMP NULL
                 );
                 CREATE INDEX IF NOT EXISTS idx_runs_status ON runs(status);
+                CREATE INDEX IF NOT EXISTS idx_runs_user ON runs(user_id);
 
                 CREATE TABLE IF NOT EXISTS agent_runs (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -102,14 +109,15 @@ class RunStore:
         report_dir: str = "",
         run_id: Optional[str] = None,
         metadata: Optional[dict] = None,
+        user_id: str = "",
     ) -> Run:
         """创建 Run，并把 12 棒预置为 queued（resume 时据此知道哪些没跑过）。"""
         run_id = run_id or f"run_{uuid.uuid4().hex[:12]}"
         with self._connect() as conn:
             conn.execute(
-                """INSERT INTO runs (run_id, project_id, status, project_input, report_dir, metadata_json)
-                   VALUES (?, ?, ?, ?, ?, ?)""",
-                (run_id, project_id, RUN_QUEUED, project_input, report_dir,
+                """INSERT INTO runs (run_id, user_id, project_id, status, project_input, report_dir, metadata_json)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                (run_id, user_id, project_id, RUN_QUEUED, project_input, report_dir,
                  json.dumps(metadata or {}, ensure_ascii=False)),
             )
             conn.executemany(
@@ -129,6 +137,15 @@ class RunStore:
         with self._connect() as conn:
             rows = conn.execute(
                 "SELECT * FROM runs ORDER BY created_at DESC, updated_at DESC LIMIT ?", (limit,)
+            ).fetchall()
+        return [self._row_to_run(r) for r in rows]
+
+    def list_user_runs(self, user_id: str, limit: int = 20) -> List[Run]:
+        """只返回属于该用户的 Run（user_id 隔离）。"""
+        with self._connect() as conn:
+            rows = conn.execute(
+                "SELECT * FROM runs WHERE user_id = ? ORDER BY created_at DESC, updated_at DESC LIMIT ?",
+                (user_id, limit),
             ).fetchall()
         return [self._row_to_run(r) for r in rows]
 
@@ -313,6 +330,8 @@ class RunStore:
 
     @staticmethod
     def _row_to_run(row: sqlite3.Row) -> Run:
+        # 兼容旧库（无 user_id 列时取空串）
+        user_id = row["user_id"] if "user_id" in row.keys() else ""
         return Run(
             run_id=row["run_id"], project_id=row["project_id"], status=row["status"],
             current_stage=row["current_stage"] or "", project_input=row["project_input"] or "",
@@ -321,6 +340,7 @@ class RunStore:
             metadata=json.loads(row["metadata_json"] or "{}"),
             created_at=row["created_at"] or "", updated_at=row["updated_at"] or "",
             finished_at=row["finished_at"],
+            user_id=user_id or "",
         )
 
     @staticmethod

@@ -16,6 +16,7 @@ data/*.db-shm
 
 # 开发工具与备份
 .trae/
+.workbuddy/
 reports/_legacy_flat_pre79/
 
 # 系统

@@ -18,6 +18,7 @@
 import os
 import sys
 from pathlib import Path
+from typing import Optional
 
 import streamlit as st
 
@@ -42,6 +43,7 @@ from schemas.agent_result import (
     AgentResult,
     STATUS_SUCCESS, STATUS_FAILED, STATUS_BLOCKED, STATUS_SKIPPED,
 )
+from auth import get_auth_client, UserInfo
 
 from frontend import design_tokens as T
 from frontend import ui_helpers as H
@@ -63,6 +65,10 @@ NAV_RECENT = "▣ 最近项目"
 NAV_COMMITTEE = "◈ 委员会"
 NAV_SETTINGS = "⚙ 设置"
 NAV_ITEMS = [NAV_NEW, NAV_RUN, NAV_RECENT, NAV_COMMITTEE, NAV_SETTINGS]
+
+# ── 认证状态键 ──
+AUTH_USER_KEY = "cx_current_user"              # UserInfo or None
+SIGNUP_PENDING_EMAIL_KEY = "cx_signup_pending_email"  # 注册第二步：待验证邮箱
 
 # ── 演示用的默认创业想法（仅作为输入框初始值，不参与任何结论） ──
 DEFAULT_IDEA = {
@@ -95,6 +101,10 @@ if "_nav_next" not in ss:
     ss._nav_next = None
 if "source" not in ss:
     ss.source = ""         # 当前结果来源（真实运行 / 磁盘报告）
+if AUTH_USER_KEY not in ss:
+    ss[AUTH_USER_KEY] = None    # 未登录 → None；登录后 → UserInfo
+if SIGNUP_PENDING_EMAIL_KEY not in ss:
+    ss[SIGNUP_PENDING_EMAIL_KEY] = ""    # 注册第二步：待验证邮箱
 
 # 导航切换必须发生在 sidebar 控件实例化之前
 if ss._nav_next:
@@ -113,6 +123,21 @@ def reset_run():
     ss.results = {}
     ss.error = None
     ss.source = ""
+
+
+# ═══════════════════════════════════════════════════════════
+# 认证辅助
+# ═══════════════════════════════════════════════════════════
+
+def current_user() -> Optional[UserInfo]:
+    """返回当前登录用户，未登录返回 None。"""
+    return ss.get(AUTH_USER_KEY)
+
+
+def current_user_id() -> str:
+    """返回当前登录用户的 ID，未登录返回空串。"""
+    u = current_user()
+    return u.id if u else ""
 
 
 # ═══════════════════════════════════════════════════════════
@@ -230,6 +255,28 @@ def current_status() -> tuple:
 def render_sidebar():
     with st.sidebar:
         st.markdown(UI.sidebar_brand(), unsafe_allow_html=True)
+        # ── 用户信息 + 退出 ──
+        user = current_user()
+        if user:
+            st.markdown(
+                f'<div class="cx-root" style="display:flex;align-items:center;gap:8px;padding:6px 0 10px 0;">'
+                f'<span style="width:28px;height:28px;border-radius:50%;background:{T.PRIMARY_SOFT};'
+                f'color:{T.PRIMARY};display:flex;align-items:center;justify-content:center;'
+                f'font-size:14px;font-weight:700;">{H.esc(user.email[0].upper())}</span>'
+                f'<span style="flex:1;min-width:0;font-size:12.5px;font-weight:600;color:{T.FOREGROUND};'
+                f'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{H.esc(user.email)}</span>'
+                f'</div>', unsafe_allow_html=True)
+            if st.button("退出登录", use_container_width=True):
+                try:
+                    get_auth_client().sign_out()
+                except Exception:
+                    pass
+                ss[AUTH_USER_KEY] = None
+                ss[SIGNUP_PENDING_EMAIL_KEY] = ""
+                reset_run()
+                st.rerun()
+            st.markdown('<div class="cx-side-rule" style="margin-top:10px;"></div>',
+                        unsafe_allow_html=True)
         st.radio("导航", NAV_ITEMS, key="nav", label_visibility="collapsed")
         st.markdown('<div class="cx-side-rule" style="margin-top:14px;"></div>',
                     unsafe_allow_html=True)
@@ -253,6 +300,108 @@ def render_sidebar():
                 f"{agent_n} 位 AI 委员 · {len(H.GROUP_ORDER)} 大委员会<br>"
                 "红队对抗 · 红线一票否决"),
             unsafe_allow_html=True)
+
+
+# ═══════════════════════════════════════════════════════════
+# 页面：登录 / 注册
+# ═══════════════════════════════════════════════════════════
+
+def page_auth():
+    """登录 / 注册页面 —— 未登录时的唯一入口。
+
+    注册流程（邮箱验证码回填版，方案 A）：
+      第一步：邮箱 + 密码 + 确认密码 → 点击「注册并获取验证码」
+              → Supabase sign_up 创建用户并发送邮箱验证码
+              → 页面切换到第二步
+      第二步：显示「验证码已发送至 xxx」，回填验证码
+              → 点击「验证并注册」→ Supabase verify_otp(type=email)
+              → 验证成功 → 进入主应用
+    """
+    st.markdown('<div class="cx-root">', unsafe_allow_html=True)
+    st.markdown(
+        f'<div style="text-align:center;padding:40px 0 20px 0;">'
+        f'<div style="font-size:28px;font-weight:700;color:{T.FOREGROUND};">创想∞ AI创业委员会</div>'
+        f'<div style="font-size:14px;color:{T.MUTED};margin-top:8px;">让 AI 先质疑你的创业想法</div>'
+        f'</div>', unsafe_allow_html=True)
+
+    auth = get_auth_client()
+
+    pending_email = ss.get(SIGNUP_PENDING_EMAIL_KEY) or ""
+
+    tab_login, tab_signup = st.tabs(["登录", "注册"])
+
+    # ── 登录 Tab ──
+    with tab_login:
+        with st.form("cx_login_form"):
+            login_email = st.text_input("邮箱", key="login_email", placeholder="your@email.com")
+            login_pwd = st.text_input("密码", type="password", key="login_pwd", placeholder="至少 6 位")
+            login_submit = st.form_submit_button("登录", type="primary", use_container_width=True)
+        if login_submit:
+            try:
+                user = auth.sign_in(login_email, login_pwd)
+                ss[AUTH_USER_KEY] = user
+                ss[SIGNUP_PENDING_EMAIL_KEY] = ""
+                st.rerun()
+            except Exception as e:
+                st.error(f"登录失败：{str(e)[:120]}")
+
+    # ── 注册 Tab（两步切换） ──
+    with tab_signup:
+        if pending_email:
+            # 第二步：输入邮箱验证码
+            st.markdown(
+                f'<div style="text-align:center;padding:10px 0 18px 0;">'
+                f'<div style="font-size:16px;font-weight:600;color:{T.FOREGROUND};">验证你的邮箱</div>'
+                f'<div style="font-size:12.5px;color:{T.MUTED};margin-top:6px;">'
+                f'验证码已发送至 <span style="font-weight:600;color:{T.FOREGROUND};">{H.esc(pending_email)}</span>'
+                f'</div></div>', unsafe_allow_html=True)
+            with st.form("cx_signup_otp_form"):
+                otp = st.text_input(
+                    "邮箱验证码",
+                    key="signup_otp",
+                    placeholder="请输入邮件中的 6 位验证码",
+                )
+                otp_submit = st.form_submit_button("验证并注册", type="primary", use_container_width=True)
+            col_back, _, _ = st.columns([1, 2, 2])
+            with col_back:
+                if st.button("← 重新填写邮箱", use_container_width=True):
+                    ss[SIGNUP_PENDING_EMAIL_KEY] = ""
+                    ss["signup_otp"] = ""
+                    st.rerun()
+            if otp_submit:
+                try:
+                    user = auth.verify_signup_otp(pending_email, otp)
+                    ss[AUTH_USER_KEY] = user
+                    ss[SIGNUP_PENDING_EMAIL_KEY] = ""
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"验证失败：{str(e)[:120]}")
+        else:
+            # 第一步：邮箱 + 密码 + 确认密码
+            with st.form("cx_signup_form"):
+                signup_email = st.text_input("邮箱", key="signup_email", placeholder="your@email.com")
+                signup_pwd = st.text_input("密码", type="password", key="signup_pwd", placeholder="至少 6 位")
+                signup_pwd2 = st.text_input("确认密码", type="password", key="signup_pwd2")
+                signup_submit = st.form_submit_button(
+                    "注册并获取验证码", type="primary", use_container_width=True)
+            if signup_submit:
+                if signup_pwd != signup_pwd2:
+                    st.error("两次输入的密码不一致")
+                else:
+                    try:
+                        auth.signup_send_otp(signup_email, signup_pwd)
+                        ss[SIGNUP_PENDING_EMAIL_KEY] = signup_email.strip().lower()
+                        ss["signup_otp"] = ""
+                        st.success("验证码已发送，请查收邮件（含垃圾箱）")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"注册失败：{str(e)[:120]}")
+
+    st.markdown(
+        f'<div style="text-align:center;padding:16px 0;color:{T.MUTED_SOFT};font-size:11px;">'
+        f'认证服务：Supabase Auth · 邮箱验证码注册'
+        f'</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ═══════════════════════════════════════════════════════════
@@ -702,7 +851,12 @@ def page_recent():
     st.markdown(UI.page_header("最近项目", "运行记录与报告来源", title, tone), unsafe_allow_html=True)
 
     try:
-        runs = RunStore().list_recent_runs(limit=10)
+        uid = current_user_id()
+        store = RunStore()
+        if uid:
+            runs = store.list_user_runs(uid, limit=20)
+        else:
+            runs = store.list_recent_runs(limit=10)
         err = ""
     except Exception as e:
         runs, err = [], str(e)[:120]
@@ -847,17 +1001,21 @@ def page_settings():
 
 
 # ═══════════════════════════════════════════════════════════
-# 路由
+# 路由（带认证门禁）
 # ═══════════════════════════════════════════════════════════
-render_sidebar()
-
-if ss.nav == NAV_NEW:
-    page_new()
-elif ss.nav == NAV_RUN:
-    page_run()
-elif ss.nav == NAV_RECENT:
-    page_recent()
-elif ss.nav == NAV_COMMITTEE:
-    page_committee()
+if not current_user():
+    # 未登录 → 只显示登录/注册页（不渲染侧边栏与业务页面）
+    page_auth()
 else:
-    page_settings()
+    render_sidebar()
+
+    if ss.nav == NAV_NEW:
+        page_new()
+    elif ss.nav == NAV_RUN:
+        page_run()
+    elif ss.nav == NAV_RECENT:
+        page_recent()
+    elif ss.nav == NAV_COMMITTEE:
+        page_committee()
+    else:
+        page_settings()

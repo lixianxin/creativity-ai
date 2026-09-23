@@ -71,6 +71,7 @@ class Run:
     created_at: str = ""
     updated_at: str = ""
     finished_at: Optional[str] = None
+    user_id: str = ""
 
     def to_dict(self) -> dict:
         return self.__dict__.copy()
