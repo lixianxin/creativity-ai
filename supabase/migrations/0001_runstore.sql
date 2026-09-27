@@ -50,21 +50,35 @@ CREATE INDEX IF NOT EXISTS idx_agent_runs_run ON agent_runs(run_id, stage_seq);
 -- 未绑定时 current_setting 返回 NULL，所有行不可见（默认拒绝）。
 -- FORCE 使表 owner 也受策略约束，应用层漏写 WHERE 无法越权。
 -- (SELECT ...) 包裹让 current_setting 成为 initplan，避免逐行求值。
+-- NULLIF 闸：空字符串身份（如忘记绑定/连接池默认值）一律拒绝读写，
+-- 防止 user_id='' 的行成为"无主共享行"。
 ALTER TABLE runs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE runs FORCE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS runs_user_isolation ON runs;
 CREATE POLICY runs_user_isolation ON runs
     FOR ALL
-    USING (user_id = (SELECT current_setting('app.user_id', true)))
-    WITH CHECK (user_id = (SELECT current_setting('app.user_id', true)));
+    USING (
+        NULLIF((SELECT current_setting('app.user_id', true)), '') IS NOT NULL
+        AND user_id = (SELECT current_setting('app.user_id', true))
+    )
+    WITH CHECK (
+        NULLIF((SELECT current_setting('app.user_id', true)), '') IS NOT NULL
+        AND user_id = (SELECT current_setting('app.user_id', true))
+    );
 
 ALTER TABLE agent_runs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE agent_runs FORCE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS agent_runs_user_isolation ON agent_runs;
 CREATE POLICY agent_runs_user_isolation ON agent_runs
     FOR ALL
-    USING (user_id = (SELECT current_setting('app.user_id', true)))
-    WITH CHECK (user_id = (SELECT current_setting('app.user_id', true)));
+    USING (
+        NULLIF((SELECT current_setting('app.user_id', true)), '') IS NOT NULL
+        AND user_id = (SELECT current_setting('app.user_id', true))
+    )
+    WITH CHECK (
+        NULLIF((SELECT current_setting('app.user_id', true)), '') IS NOT NULL
+        AND user_id = (SELECT current_setting('app.user_id', true))
+    );
 
 -- ── 应用专用角色（最小权限）──
 -- 关键：应用绝不能用 postgres 超级用户连接——superuser 无条件绕过 RLS，
