@@ -40,6 +40,7 @@ from core.result_validator import (
     cross_check_decisions,
 )
 from core.run import (
+    Run,
     AGENT_SUCCESS, AGENT_FAILED, AGENT_BLOCKED, AGENT_DEGRADED, AGENT_SKIPPED,
 )
 from core.run_store import RunStore
@@ -287,6 +288,21 @@ class CommitteePipeline:
         self.store.update_current_stage(run_id, spec.stage_key)
 
     # ══════════════════════ 全量运行 ══════════════════════
+
+    def start_run(self, project_input: str, report_dir: str = "") -> Run:
+        """逐棒模式开局：接管孤儿 Run 并创建本次 Run 记录。
+
+        user_id 由 RunStore 构造绑定自动带入；此后逐棒 run_stage 传该 run_id
+        即可逐棒落 checkpoint，"最近项目"与断点续跑据此可见。
+        """
+        self.store.mark_orphaned_runs_paused()
+        run = self.store.create_run(
+            project_input=project_input,
+            stage_specs=self.registry.stage_specs_tuples(),
+            report_dir=report_dir or str(self.report_dir),
+        )
+        self.current_run_id = run.run_id
+        return run
 
     def run(self, project_input: str, save: bool = True, on_progress=None) -> ProjectContext:
         # 启动即接管上次异常退出遗留的僵死 Run
@@ -548,13 +564,18 @@ class CommitteePipeline:
     # ══════════════════════ UI 逐棒入口 ══════════════════════
 
     def run_stage(self, stage_idx: int, project_input: str, ctx: ProjectContext,
-                  save: bool = True) -> AgentResult:
-        """供 Streamlit 逐棒调用：同样过校验闸门与程序信号，不绑定 Run 记录。"""
+                  save: bool = True, run_id: Optional[str] = None) -> AgentResult:
+        """供 Streamlit 逐棒调用：同样过校验闸门与程序信号。
+
+        传入 run_id（start_run 返回的记录）时逐棒落 checkpoint；
+        不传则维持旧行为——只执行不绑定 Run 记录（离线测试路径）。
+        """
+        self.current_run_id = run_id
         spec = self.registry.all()[stage_idx]
         t0 = time.time()
         try:
             ctx_dict = {"reports": list(ctx.reports)} if spec.needs_context else None
-            outcome = self._execute_agent(spec, project_input, ctx_dict, run_id=None)
+            outcome = self._execute_agent(spec, project_input, ctx_dict, run_id=run_id)
             result = outcome.result
             result.metadata["elapsed_s"] = round(time.time() - t0, 1)
             ctx.add_report(result)
@@ -571,6 +592,21 @@ class CommitteePipeline:
 
     def save_final_report(self, ctx: ProjectContext):
         self._save_final_report(ctx, self.current_run_id or "")
+
+    def finish_run_with_results(self) -> Optional[str]:
+        """逐棒模式最后一棒收尾：按 DB checkpoint 统计成败，落 Run 终态。
+
+        success/degraded 计为成功（有产出），其余（failed/blocked/skipped/
+        paused/queued）计为失败——与 run() 全量路径的统计口径一致。
+        无绑定 Run（未传 run_id 的离线路径）时静默跳过。
+        """
+        if not self.current_run_id:
+            return None
+        agents = self.store.list_agent_runs(self.current_run_id)
+        success_count = sum(1 for a in agents if a.status in (AGENT_SUCCESS, AGENT_DEGRADED))
+        fail_count = sum(1 for a in agents if a.status not in (AGENT_SUCCESS, AGENT_DEGRADED))
+        return self.store.finish_run(self.current_run_id,
+                                     success_count=success_count, fail_count=fail_count)
 
     # ══════════════════════ 存储 ══════════════════════
 

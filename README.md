@@ -85,9 +85,26 @@ python -m streamlit run frontend/app.py
 需要在 `.streamlit/secrets.toml` 配置：
 
 - `SUPABASE_URL` / `SUPABASE_ANON_KEY`：用户注册登录（Supabase Auth，邮箱验证码注册 + 密码登录，无本地回退）
+- `SUPABASE_DB_URL`（可选但强烈建议）：Supabase Postgres 连接串（项目页顶部 **Connect** 按钮 → **Session pooler**，端口 5432）。配置后 RunStore 持久化到云端 PG，运行记录跨重启存活，且数据库层以 RLS 按 user_id 强制行级隔离；不配置则回退本地 SQLite（Streamlit Cloud 重启会丢失运行记录）
 - 至少一个 LLM 平台密钥：`DEEPSEEK_*` / `BAILIAN_*` / `ZHIPU_*`（主平台余额不足时自动降级到下一个可用平台）
 
 Streamlit Community Cloud 部署时，在应用 Settings → Secrets 中填入同样内容即可。
+
+#### 数据库开通（仅首次，一次性）
+
+应用**必须用最小权限角色**连接——`postgres` 是超级用户，会无条件绕过 RLS（连 `FORCE ROW LEVEL SECURITY` 也拦不住）。拿到 Session pooler 连接串后，先以 postgres 身份执行：
+
+```sql
+-- 1) 创建应用角色（密码自定义，建议纯字母数字）
+CREATE ROLE runstore_app LOGIN PASSWORD '你自己设定的密码';
+-- 2) 建表 + RLS 策略 + 授权：在 SQL Editor 粘贴执行 supabase/migrations/0001_runstore.sql 全文
+```
+
+随后 `SUPABASE_DB_URL` 使用应用角色，pooler 用户名格式为 `runstore_app.项目ref`：
+
+```
+postgresql://runstore_app.<PROJECT-REF>:<密码>@aws-0-<region>.pooler.supabase.com:5432/postgres
+```
 
 ### 离线工程验收（不调真实 LLM）
 
@@ -96,6 +113,7 @@ python tests/system/test_phase_7_7_dag.py                  # DAG 并行/阻断/�
 python tests/system/test_phase_7_8_critic_repair.py        # Critic→Repair 闭环（39 项）
 python tests/system/test_phase_7_9_validator_semantics.py  # Validator 语义（36 项）
 python tests/system/test_v2_runtime.py                     # 失败路径/错误分类/断点恢复（80 项）
+python tests/system/test_pg_run_store.py                   # PG 往返 + 双用户 RLS 隔离（需 SUPABASE_DB_URL，未配置自动 SKIP）
 python tests/system/smoke_auth.py                          # 注册→验证码→登录 无头冒烟
 ```
 

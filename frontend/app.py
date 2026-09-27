@@ -37,7 +37,7 @@ except Exception:
 from pipeline.orchestrator import CommitteePipeline
 from core.context import ProjectContext
 from core.config import PLATFORMS
-from core.run_store import RunStore
+from core.run_store import RunStore, DEFAULT_DB_PATH
 from core.run import RUN_PAUSED, RUN_FAILED, RUN_COMPLETED_WITH_ERRORS
 from schemas.agent_result import (
     AgentResult,
@@ -97,8 +97,11 @@ if "stage" not in ss:
     ss.project_input = ""
     ss.results = {}        # {stage_idx: AgentResult}
     ss.error = None
+    ss.run_id = None       # 当前 Run 记录（RunStore checkpoint / 断点续跑）
 if "_nav_next" not in ss:
     ss._nav_next = None
+if "run_id" not in ss:
+    ss.run_id = None       # 兼容本次部署前已存在的旧浏览器会话
 if "source" not in ss:
     ss.source = ""         # 当前结果来源（真实运行 / 磁盘报告）
 if AUTH_USER_KEY not in ss:
@@ -123,6 +126,7 @@ def reset_run():
     ss.results = {}
     ss.error = None
     ss.source = ""
+    ss.run_id = None
 
 
 # ═══════════════════════════════════════════════════════════
@@ -138,6 +142,19 @@ def current_user_id() -> str:
     """返回当前登录用户的 ID，未登录返回空串。"""
     u = current_user()
     return u.id if u else ""
+
+
+def new_user_store() -> RunStore:
+    """绑定当前用户的 RunStore；PG 初始化失败时显式降级 SQLite（审议不中断）。"""
+    try:
+        return RunStore(user_id=current_user_id())
+    except Exception:
+        return RunStore(db_path=DEFAULT_DB_PATH)
+
+
+def new_user_pipe() -> CommitteePipeline:
+    """绑定当前用户的 CommitteePipeline（store 注入同 new_user_store）。"""
+    return CommitteePipeline(run_store=new_user_store())
 
 
 # ═══════════════════════════════════════════════════════════
@@ -513,6 +530,13 @@ def page_new():
         ss.results = {}
         ss.error = None
         ss.source = ""
+        ss.run_id = None
+        # 创建 Run 记录：此后逐棒 checkpoint 落库，"最近项目"与断点续跑可见。
+        # 落库失败不阻断审议本身（降级为不记录，结果仍在报告目录）。
+        try:
+            ss.run_id = new_user_pipe().start_run(ss.project_input).run_id
+        except Exception as e:
+            st.toast(f"运行记录未落库，本次审议不被记录：{str(e)[:120]}", icon="⚠️")
         goto(NAV_RUN)
 
     # 次要动作：磁盘报告 / 委员会架构
@@ -636,11 +660,11 @@ def page_run():
                 unsafe_allow_html=True)
     st.markdown(UI.agent_wall(agent_rows(current_idx)), unsafe_allow_html=True)
 
-    # ── 执行当前棒（业务逻辑与重构前完全一致） ──
-    pipe = CommitteePipeline()
+    # ── 执行当前棒（业务逻辑与重构前完全一致；run_id 绑定时逐棒落 checkpoint） ──
+    pipe = new_user_pipe()
     try:
         with st.spinner(f"{info['label']} 正在分析..."):
-            result = pipe.run_stage(current_idx, ss.project_input, ss.ctx)
+            result = pipe.run_stage(current_idx, ss.project_input, ss.ctx, run_id=ss.run_id)
             ss.results[current_idx] = result
             ss.stage += 1
 
@@ -648,6 +672,7 @@ def page_run():
                 st.rerun()
             else:
                 pipe.save_final_report(ss.ctx)
+                pipe.finish_run_with_results()   # 最后一棒：按 checkpoint 结算 Run 终态
                 ss.stage = total
                 st.rerun()
     except Exception as e:
@@ -852,7 +877,7 @@ def page_recent():
 
     try:
         uid = current_user_id()
-        store = RunStore()
+        store = RunStore(user_id=uid)
         if uid:
             runs = store.list_user_runs(uid, limit=20)
         else:
@@ -894,8 +919,9 @@ def page_recent():
                     if st.button("▶ 恢复审议", key=f"resume_{run.run_id}", use_container_width=True):
                         try:
                             with st.spinner("正在从断点恢复：已成功的棒次本地回读，不重复调用 LLM..."):
-                                pipe = CommitteePipeline()
+                                pipe = new_user_pipe()
                                 ss.ctx = pipe.resume(run.run_id)
+                                ss.run_id = run.run_id    # 续跑后的逐棒 checkpoint 落到同一条 Run
                                 ss.project_input = run.project_input
                                 ss.results = {}
                                 pipe.save_final_report(ss.ctx)
