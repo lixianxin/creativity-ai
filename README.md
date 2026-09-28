@@ -108,14 +108,26 @@ postgresql://runstore_app.<PROJECT-REF>:<密码>@aws-0-<region>.pooler.supabase.
 
 ### 离线工程验收（不调真实 LLM）
 
+一条命令复跑全部离线套件（pytest，263 项断言；无需任何密钥）：
+
+```bash
+pip install -r requirements-dev.txt
+pytest tests/system -q
+```
+
+也可逐个脚本独立运行：
+
 ```bash
 python tests/system/test_phase_7_7_dag.py                  # DAG 并行/阻断/恢复（52 项）
 python tests/system/test_phase_7_8_critic_repair.py        # Critic→Repair 闭环（39 项）
 python tests/system/test_phase_7_9_validator_semantics.py  # Validator 语义（36 项）
 python tests/system/test_v2_runtime.py                     # 失败路径/错误分类/断点恢复（80 项）
+python tests/system/test_phase_7_6_acceptance.py           # 运行时 checkpoint/resume（56 项）
 python tests/system/test_pg_run_store.py                   # PG 往返 + 双用户 RLS 隔离（需 SUPABASE_DB_URL，未配置自动 SKIP）
 python tests/system/smoke_auth.py                          # 注册→验证码→登录 无头冒烟
 ```
+
+GitHub Actions（`.github/workflows/ci.yml`）在每次 push / PR 时自动执行编译检查与上述离线 pytest；CI 不配置任何密钥，需要真实 API Key 的联调脚本不进入 CI。
 
 ### 单 Agent / 全链路真实联调（需要 API Key，会产生调用费用）
 

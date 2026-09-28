@@ -259,7 +259,7 @@ def test_g_failed_path_keeps_repair_evidence():
         ba.llm.generate = orig_gen
 
 
-if __name__ == "__main__":
+def main():
     test_a_repairable_warning_triggers_repair()
     test_b_non_repairable_warning_no_repair()
     test_c_error_repair_partial_resolution_evidence()
@@ -269,4 +269,8 @@ if __name__ == "__main__":
     test_g_failed_path_keeps_repair_evidence()
     print("\n" + "=" * 60)
     print(f"Phase 7-8 Critic/Repair 验收：{t76._PASSED} 通过 / {t76._FAILED} 失败")
-    sys.exit(0 if t76._FAILED == 0 else 1)
+    return 0 if t76._FAILED == 0 else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

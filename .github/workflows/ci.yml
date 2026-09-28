@@ -1,0 +1,32 @@
+# 离线 CI：只做编译检查与离线测试，不配置任何密钥，不调用真实 LLM/API。
+# 需要真实 API Key 的联调脚本（phase_7_*_real_run.py / smoke_auth.py /
+# test_pg_run_store.py）均不在收集范围。
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  offline-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Compile check
+        run: python -m compileall -q agents core pipeline frontend tests
+
+      - name: Offline test suites (263 asserts, no network / no secrets)
+        run: pytest tests/system -q
