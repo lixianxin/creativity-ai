@@ -108,7 +108,7 @@ postgresql://runstore_app.<PROJECT-REF>:<密码>@aws-0-<region>.pooler.supabase.
 
 ### 离线工程验收（不调真实 LLM）
 
-一条命令复跑全部离线套件（pytest，263 项断言；无需任何密钥）：
+一条命令复跑全部离线套件（pytest，302 项断言；无需任何密钥）：
 
 ```bash
 pip install -r requirements-dev.txt

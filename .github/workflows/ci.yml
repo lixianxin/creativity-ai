@@ -26,7 +26,7 @@ jobs:
           pip install -r requirements.txt -r requirements-dev.txt
 
       - name: Compile check
-        run: python -m compileall -q agents core pipeline frontend tests
+        run: python -m compileall -q agents core pipeline frontend tests mcp_server
 
-      - name: Offline test suites (263 asserts, no network / no secrets)
+      - name: Offline test suites (302 asserts, no network / no secrets)
         run: pytest tests/system -q
